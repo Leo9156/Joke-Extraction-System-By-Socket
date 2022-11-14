@@ -26,7 +26,7 @@ def handle_client(conn, addr):
                     conn.send("empty".encode(FORMAT))
                 else:
                     maxNum = row[0]
-                    num = random.randrange(1, maxNum + 1)  # Randomly selects a joke in the database
+                    num = random.randrange(1, maxNum + 1)  # Randomly selects a joke in the database according to the number field
 
                     jokes = cur.execute("SELECT content FROM JOKE WHERE number = ?", (num,))
                     for joke in jokes:
@@ -34,13 +34,26 @@ def handle_client(conn, addr):
         elif command == "QUIT":
                 connect = False
 
+        elif command == "INSERT":
+            print(str(addr) + " : INSERT")
+            conn.send("OK".encode(FORMAT))  # response to the client
+
+            inputJoke = conn.recv(2048).decode(FORMAT) # get the joke from the client
+            
+            #Insert the joke into the database
+            rows = cur.execute("SELECT MAX(number) FROM JOKE ")
+            for row in rows:
+                if row[0] == None:
+                    number = 0
+                else:
+                    number = row[0]
+
+            cur.execute("INSERT INTO JOKE VALUES (?, ?)", (number + 1, inputJoke))
+            con.commit()
+
+    con.close()
     print(str(addr) + " : QUIT")
     conn.close()
-
-
-
-
-    #elif command == "INSERT":
 
     #else:
 
